@@ -5,6 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
 import lombok.*;
 
 @Entity
@@ -29,6 +30,7 @@ public class Product {
     @NotNull(message = "Ce champs est requis.")
     private Long quantity;
 
+    @NotNull(message = "Ce champs n'est pas requis")
     private String description;
 
 
