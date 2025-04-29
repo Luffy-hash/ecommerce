@@ -1,4 +1,3 @@
-import 'dart:ffi';
 
 import 'package:commerceimpl/Commun/constantes.dart';
 import 'package:commerceimpl/Provider/provider_product.dart';
