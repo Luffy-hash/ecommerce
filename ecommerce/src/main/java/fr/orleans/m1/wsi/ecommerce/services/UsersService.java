@@ -32,7 +32,7 @@ public class UsersService {
         // Set default values for count and role
         user.setCount(compteur++);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRoles(user.getRoles() != null ? user.getRoles() : Set.of(new Role("ROLE_USER"))); // Default role is USER
+        //user.setRoles(user.getRoles() != null ? user.getRoles() : Set.of(new Role("ROLE_USER"))); // Default role is USER
 
         // Save the user to the database
         return usersRepository.save(user);

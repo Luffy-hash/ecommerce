@@ -13,10 +13,12 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
+@Builder
 @AllArgsConstructor
 @Getter
 @Setter
@@ -50,6 +52,7 @@ public class Users {
     @JoinTable( name = "users_roles", 
         joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"), 
         inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
+    @Builder.Default
     private Set<Role> roles = new HashSet<>();
 
 }

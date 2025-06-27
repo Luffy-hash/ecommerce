@@ -1,10 +1,5 @@
 package fr.orleans.m1.wsi.ecommerce.services.custumUsers;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -12,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import fr.orleans.m1.wsi.ecommerce.models.Users;
 import fr.orleans.m1.wsi.ecommerce.repositories.UsersRepository;
+import jakarta.transaction.Transactional;
 
 @Service
 public class CustumUsersService implements UserDetailsService {
@@ -23,21 +19,14 @@ public class CustumUsersService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    @Transactional
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         
-        Users user = usersRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("utilisatuer non trouvé: " + username));
+        Users user = usersRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("utilisatuer non trouvé: " + email));
 
-        Set<GrantedAuthority> authorities = user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority(role.getName()))
-                .collect(Collectors.toSet());
         
-        return new org.springframework.security.core.userdetails.User(
-                user.getUsername(),
-                user.getPassword(),
-                authorities
-        );
-
+        return CustumUserDetailService.build(user);
         
         
     }
