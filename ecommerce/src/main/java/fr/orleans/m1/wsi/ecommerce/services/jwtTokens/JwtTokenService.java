@@ -1,133 +1,108 @@
 package fr.orleans.m1.wsi.ecommerce.services.jwtTokens;
 
-
-import java.security.interfaces.RSAPublicKey;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.util.Date;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.function.Function;
 
-import org.springframework.beans.factory.annotation.Value;
+import javax.crypto.SecretKey;
+
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
-import org.springframework.security.oauth2.jwt.JwtException;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.JWTParser;
-
-import fr.orleans.m1.wsi.ecommerce.configSecurity.RsaKeyProperties;
+import fr.orleans.m1.wsi.ecommerce.services.custumUsers.CustumUserDetailService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.SignatureException;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-
-@Service
+@Component
 public class JwtTokenService {
 
-    @Value("${rsa.public-key}")
-    private RSAPublicKey rsaKeys;
-    private final JwtEncoder jwtEncoder;
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(JwtTokenService.class);
 
-    // Constructor
-    public JwtTokenService(JwtEncoder jwtEncoder, RsaKeyProperties rsaKeyProperties) {
-        this.jwtEncoder = jwtEncoder;
-        this.rsaKeys = rsaKeyProperties.publicKey();
+    private final String secretKey;
+    private final long expirationToken;
+
+
+    public JwtTokenService(
+        @Value("${api.jwt.secret-key}") String secretKey,
+        @Value("${api.jwt.expiration-time}") long expirationToken){
+            this.secretKey = secretKey;
+            this.expirationToken = expirationToken;
     }
 
-    public String generateToken(Authentication authentication) {
-        Instant now = Instant.now();
+    // genère mon token
+    public String generateToken(Map<String, Object> extractClaims, Authentication authentication){
         
-        String scope = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(" "));
+        CustumUserDetailService userDetailService = null;
+        if (authentication.getPrincipal() instanceof CustumUserDetailService){
+            userDetailService = (CustumUserDetailService) authentication.getPrincipal();
+        }
+        else {
+            throw new IllegalAccessError("Accès non autoriser");
+        }
 
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer("self")
-                .issuedAt(now)
-                .expiresAt(now.plus(1, ChronoUnit.HOURS))
-                .subject(authentication.getName())
-                .claim("scope", scope)
-                .build();
-        return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+        return Jwts.builder()
+                   .claims(extractClaims)
+                   .subject(userDetailService.getUsername())
+                   .issuedAt(new Date(System.currentTimeMillis()))
+                   .expiration(new Date(System.currentTimeMillis() + expirationToken))
+                   .signWith(getSignInKey())
+                   .compact();
     }
 
-    public String getUsername(String token) {
+    // renvoie le nom d'utilisateur
+    public String extractUsername(String token){
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    // qui extrait un claims
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolve){
+        final Claims claims = extractAllClaims(token);
+        return claimsResolve.apply(claims);
+    }
+
+    // verifie si mon token est tjrs valide
+    public boolean isTokenValid(String token){
         try {
-            JWT jwt = JWTParser.parse(token);
-            JWTClaimsSet claims = jwt.getJWTClaimsSet();
-            return claims.getSubject();
-        } catch (Exception e) {
-            throw new RuntimeException("Token non valide", e);
+            SecretKey secret = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+            if (!(secret instanceof SecretKey)){
+                throw new IllegalArgumentException("cette clé secret n'est pas valide");
+            }
+            Jws<Claims> jws = Jwts.parser().verifyWith(secret).build().parseSignedClaims(token);
+            Claims claims = jws.getPayload();
+
+            // on vérifie si le token n'as pas expirer
+            if (claims.getExpiration().before(new Date())) {
+               throw new JwtException("ce token à expirer");
+            }
+            return true;
+        }
+        catch (JwtException e){
+            logger.error("Token invalide " + e.getMessage());
+            return false;
         }
     }
 
-    // public boolean validateToken(String token){
-    //     Jwts
-    //     .parser()
-    //     .verifyWith(rsaKeys)
-    //     .build()
-    //     .parse(token);
-    //     return true;
-    // }
-
-    public boolean validateToken(String token) {
-        try {            
-            Jws<Claims> jws = Jwts.parser()
-                    .verifyWith(rsaKeys)
-                    .build()
-                    .parseSignedClaims(token);
-            
-            // Vérification de l'expiration
-            return jws.getPayload().getExpiration().after(new Date());
-        } catch (SignatureException e) {
-            // Signature invalide
-            throw new JwtException("Signature du token invalid", e);
-        } catch (JwtException | IllegalArgumentException e) {
-            // Token invalide ou malformé
-            throw new JwtException("Token invalid", e);
-        }
+    // extrait tous les claims
+    private Claims extractAllClaims(String token){
+        SecretKey secret = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+        return Jwts.parser()
+                   .verifyWith(secret)
+                   .build()
+                   .parseSignedClaims(token)
+                   .getPayload();
     }
 
-    public String extractUsername(String token) {
-        try {
-            JWT jwt = JWTParser.parse(token);
-            JWTClaimsSet claims = jwt.getJWTClaimsSet();
-            return claims.getSubject();
-        } catch (Exception e) {
-            throw new RuntimeException("Invalid token", e);
-        }
+    private Key getSignInKey(){
+        byte[] keyBytes = this.secretKey.getBytes(StandardCharsets.UTF_8);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String refreshToken(String token) {
-        try {
-            // Parse the existing token
-            JWT jwt = JWTParser.parse(token);
-            JWTClaimsSet claims = jwt.getJWTClaimsSet();
-    
-            // Extract the subject (username) and scope
-            String subject = claims.getSubject();
-            String scope = claims.getStringClaim("scope");
-    
-            // Generate a new token with updated expiration
-            Instant now = Instant.now();
-            JwtClaimsSet newClaims = JwtClaimsSet.builder()
-                    .issuer("self")
-                    .issuedAt(now)
-                    .expiresAt(now.plus(1, ChronoUnit.HOURS)) // Extend expiration by 1 hour
-                    .subject(subject)
-                    .claim("scope", scope)
-                    .build();
-    
-            return jwtEncoder.encode(JwtEncoderParameters.from(newClaims)).getTokenValue();
-        } catch (Exception e) {
-            throw new RuntimeException("Token non rafraichi", e);
-        }
-    }
     
 }

@@ -24,7 +24,6 @@ public class CustumUsersService implements UserDetailsService {
         
         Users user = usersRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("utilisatuer non trouvé: " + email));
-
         
         return CustumUserDetailService.build(user);
         
