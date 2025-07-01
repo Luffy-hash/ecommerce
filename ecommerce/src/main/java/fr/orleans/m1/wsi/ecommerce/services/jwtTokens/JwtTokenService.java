@@ -8,14 +8,12 @@ import java.util.function.Function;
 
 import javax.crypto.SecretKey;
 
-import org.slf4j.LoggerFactory;
+// import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import fr.orleans.m1.wsi.ecommerce.services.custumUsers.CustumUserDetailService;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 @Component
 public class JwtTokenService {
 
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(JwtTokenService.class);
+    // private static final org.slf4j.Logger logger = LoggerFactory.getLogger(JwtTokenService.class);
 
     private final String secretKey;
     private final long expirationToken;
@@ -38,15 +36,10 @@ public class JwtTokenService {
 
     // genère mon token
     public String generateToken(Map<String, Object> extractClaims, Authentication authentication){
+    
+        if (!(authentication.getPrincipal() instanceof CustumUserDetailService)){ throw new IllegalAccessError("Accès non autoriser");}
+        CustumUserDetailService userDetailService = (CustumUserDetailService) authentication.getPrincipal();
         
-        CustumUserDetailService userDetailService = null;
-        if (authentication.getPrincipal() instanceof CustumUserDetailService){
-            userDetailService = (CustumUserDetailService) authentication.getPrincipal();
-        }
-        else {
-            throw new IllegalAccessError("Accès non autoriser");
-        }
-
         return Jwts.builder()
                    .claims(extractClaims)
                    .subject(userDetailService.getUsername())
@@ -68,25 +61,27 @@ public class JwtTokenService {
     }
 
     // verifie si mon token est tjrs valide
-    public boolean isTokenValid(String token){
-        try {
-            SecretKey secret = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
-            if (!(secret instanceof SecretKey)){
-                throw new IllegalArgumentException("cette clé secret n'est pas valide");
-            }
-            Jws<Claims> jws = Jwts.parser().verifyWith(secret).build().parseSignedClaims(token);
-            Claims claims = jws.getPayload();
+    public boolean isTokenValid(String token, Authentication authentication){
 
-            // on vérifie si le token n'as pas expirer
-            if (claims.getExpiration().before(new Date())) {
-               throw new JwtException("ce token à expirer");
-            }
-            return true;
-        }
-        catch (JwtException e){
-            logger.error("Token invalide " + e.getMessage());
-            return false;
-        }
+        // on recupère l'utilisateur connecté
+        if (!(authentication.getPrincipal() instanceof CustumUserDetailService)){ throw new IllegalAccessError("Accès non autoriser");}
+        CustumUserDetailService userDetailService = (CustumUserDetailService) authentication.getPrincipal();
+        
+        // on renvoie la valeur true ou false
+        String username = extractUsername(token); // utilisateur du token
+        return (username.equals(userDetailService.getUsername())) && !isTokenExpired(token);
+    }
+
+    // # Helpers methodes
+
+    // on verifie si la date est bonne ou pas (is date token expirée)
+    public boolean isTokenExpired(String token){
+        return extractExpiration(token).before(new Date());
+    }
+
+    // qui me renvoie la date d'expiration
+    private Date extractExpiration(String token){
+        return extractClaim(token, Claims::getExpiration);
     }
 
     // extrait tous les claims
