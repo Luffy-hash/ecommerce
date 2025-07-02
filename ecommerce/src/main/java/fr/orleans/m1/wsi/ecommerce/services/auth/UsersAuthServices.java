@@ -105,10 +105,4 @@ public class UsersAuthServices {
         SecurityContextHolder.clearContext();
     }
 
-    public String refreshToken(String token) {
-        // Refresh the JWT token
-        // This is a placeholder implementation and should be replaced with actual logic
-        return jwtTokenService.refreshToken(token);
-    }
-
 }
