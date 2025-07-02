@@ -3,7 +3,6 @@ package fr.orleans.m1.wsi.ecommerce.services.jwtTokens;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
-import java.util.Map;
 import java.util.function.Function;
 
 import javax.crypto.SecretKey;
@@ -35,13 +34,12 @@ public class JwtTokenService {
     }
 
     // genère mon token
-    public String generateToken(Map<String, Object> extractClaims, Authentication authentication){
+    public String generateToken(Authentication authentication){
     
         if (!(authentication.getPrincipal() instanceof CustumUserDetailService)){ throw new IllegalAccessError("Accès non autoriser");}
         CustumUserDetailService userDetailService = (CustumUserDetailService) authentication.getPrincipal();
         
         return Jwts.builder()
-                   .claims(extractClaims)
                    .subject(userDetailService.getUsername())
                    .issuedAt(new Date(System.currentTimeMillis()))
                    .expiration(new Date(System.currentTimeMillis() + expirationToken))
