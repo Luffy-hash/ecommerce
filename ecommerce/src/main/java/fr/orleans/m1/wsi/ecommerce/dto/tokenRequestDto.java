@@ -1,11 +1,9 @@
 package fr.orleans.m1.wsi.ecommerce.dto;
 
+import java.util.List;
+
 public record tokenRequestDto(
-    String accessToken
-) {
-    public tokenRequestDto {
-        if (accessToken == null || accessToken.isBlank()) {
-            throw new IllegalArgumentException("Access token cannot be null or empty");
-        }
-    }
-}
+    String accessToken,
+    String username,
+    List<String> roles
+) {}

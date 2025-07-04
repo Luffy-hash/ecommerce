@@ -1,13 +1,12 @@
 package fr.orleans.m1.wsi.ecommerce.services;
 
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import fr.orleans.m1.wsi.ecommerce.models.Role;
+
 import fr.orleans.m1.wsi.ecommerce.models.Users;
 import fr.orleans.m1.wsi.ecommerce.repositories.UsersRepository;
 
