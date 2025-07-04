@@ -1,6 +1,9 @@
 package fr.orleans.m1.wsi.ecommerce.services.entryPoint;
 
 import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
@@ -12,13 +15,15 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
+    // declarer mon logger pour loger mes erreurs dans le cache
+    private static final Logger loger = LoggerFactory.getLogger(JwtAuthenticationEntryPoint.class);
+
     @Override
-    public void commence(
-        HttpServletRequest request, 
-        HttpServletResponse response,
-        AuthenticationException authException) throws IOException, ServletException {
-        
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage());
+    public void commence(HttpServletRequest request, HttpServletResponse response,
+            AuthenticationException authException) throws IOException, ServletException {
+        // faut aller voir dans le cache
+        loger.error("Unauthorized", authException.getMessage());
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error : Unauthorized");
     }
     
 }
