@@ -1,7 +1,9 @@
 package fr.orleans.m1.wsi.ecommerce.controllers.admin;
 
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -18,8 +20,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import fr.orleans.m1.wsi.ecommerce.dto.RegistrationRequestDto;
 import fr.orleans.m1.wsi.ecommerce.dto.loginRequestDto;
 import fr.orleans.m1.wsi.ecommerce.dto.tokenRequestDto;
+import fr.orleans.m1.wsi.ecommerce.models.ERoles;
+import fr.orleans.m1.wsi.ecommerce.models.Role;
+import fr.orleans.m1.wsi.ecommerce.models.Users;
+import fr.orleans.m1.wsi.ecommerce.repositories.RoleRepository;
 import fr.orleans.m1.wsi.ecommerce.repositories.UsersRepository;
 import fr.orleans.m1.wsi.ecommerce.services.custumUsers.CustumUserDetailService;
 import fr.orleans.m1.wsi.ecommerce.services.jwtTokens.JwtTokenService;
@@ -34,16 +41,19 @@ public class AuthController {
     private final UsersRepository usersRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenService jwtTokenService;
+    private final RoleRepository roleRepository;
 
 
     public AuthController(
         AuthenticationManager authentication, UsersRepository usersRepository,
-        PasswordEncoder passwordEncoder, JwtTokenService jwtTokenService
+        PasswordEncoder passwordEncoder, JwtTokenService jwtTokenService,
+        RoleRepository roleRepository
     ){
         this.authentication = authentication;
         this.usersRepository = usersRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenService = jwtTokenService;
+        this.roleRepository = roleRepository;
     }
 
     @PostMapping("/signin")
@@ -67,5 +77,55 @@ public class AuthController {
         ));
     }
 
+    @PostMapping("/singup")
+    public ResponseEntity<?> register(@Valid @RequestBody RegistrationRequestDto registration){
+        if (usersRepository.existsByEmail(registration.email())){
+            return ResponseEntity.badRequest().body("Cet email est déjà inscrit");
+        }
+
+        Users user = Users
+                        .builder()
+                        .email(registration.email())
+                        .username(registration.username())
+                        .password(passwordEncoder.encode(registration.password()))
+                        .build();
+        
+        Set<String> strRoles = registration.roles();
+        Set<Role> roles = new HashSet<>();
+
+        if (strRoles == null){
+            Role userRole = roleRepository.findByERole(ERoles.ROLE_USER.name())
+                                .orElseThrow(() -> new RuntimeException("pas de role"));
+            roles.add(userRole);    
+        }
+        else {
+            strRoles.forEach(
+                role -> 
+                    {switch (role) {
+                        case "admin":
+                            Role adminRole = roleRepository.findByERole(ERoles.ROLE_ADMIN.name())
+                                .orElseThrow(() -> new RuntimeException("zut admin"));
+                            roles.add(adminRole);
+                            break;
+                        case "vendeur":
+                            Role vendeurRole = roleRepository.findByERole(ERoles.ROLE_VENDEUR.name())
+                                .orElseThrow(() -> new RuntimeException("zut vendeur"));
+                                roles.add(vendeurRole);
+                            break;
+                        default:
+                            Role userRole = roleRepository.findByERole(ERoles.ROLE_USER.name())
+                                .orElseThrow(() -> new RuntimeException("zut utilisateur"));
+                            roles.add(userRole);
+                            break;
+                    } } 
+            );
+        }
+
+        user.setRoles(roles);
+        usersRepository.save(user);
+
+        return ResponseEntity.ok("Vous êtes inscrit!");
+
+    }
     
 }

@@ -1,6 +1,5 @@
 package fr.orleans.m1.wsi.ecommerce.repositories;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,8 +15,7 @@ public interface UsersRepository extends JpaRepository<Users, Long> {
 
     boolean existsByEmail(String email);
     boolean existsByUsername(String username);
-    
-    List<Users> findByRole(String role); // List users by role
+
 
     void deleteById(Integer id);
     

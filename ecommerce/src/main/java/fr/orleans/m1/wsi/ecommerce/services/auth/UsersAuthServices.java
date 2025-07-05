@@ -52,53 +52,53 @@ public class UsersAuthServices {
         return jwtTokenService.generateToken(authentication);
     }
 
-    public ResponseEntity<?> register(RegistrationRequestDto request) {
+    // public ResponseEntity<?> register(RegistrationRequestDto request) {
 
-        // Vérification de l'existence de l'utilisateur
-        if (userRepository.existsByUsername(request.username())) {
-            return ResponseEntity.badRequest().body("Cet utilisateur existe déjà");
-        }
+    //     // Vérification de l'existence de l'utilisateur
+    //     if (userRepository.existsByUsername(request.username())) {
+    //         return ResponseEntity.badRequest().body("Cet utilisateur existe déjà");
+    //     }
 
-        // Vérification de la longueur du mot de passe
-        if (request.password().length() < 8) {
-            return ResponseEntity.badRequest().body("Le mot de passe doit faire au moins 8 caractères");
-        }
-        // Vérification de la présence de l'email
-        if (request.email() == null || request.email().isBlank()) {
-            return ResponseEntity.badRequest().body("L'email ne peut pas être vide");
-        }
-        // Vérification de la présence du mot de passe
-        if (request.password() == null || request.password().isBlank()) {
-            return ResponseEntity.badRequest().body("Le mot de passe ne peut pas être vide");
-        }
-        // Vérification de la présence du nom d'utilisateur
-        if (request.username() == null || request.username().isBlank()) {
-            return ResponseEntity.badRequest().body("Le nom d'utilisateur ne peut pas être vide");
-        }
-        // Vérification de la présence de l'email
-        if (request.email() == null || request.email().isBlank()) {
-            return ResponseEntity.badRequest().body("L'email ne peut pas être vide");
-        }
+    //     // Vérification de la longueur du mot de passe
+    //     if (request.password().length() < 8) {
+    //         return ResponseEntity.badRequest().body("Le mot de passe doit faire au moins 8 caractères");
+    //     }
+    //     // Vérification de la présence de l'email
+    //     if (request.email() == null || request.email().isBlank()) {
+    //         return ResponseEntity.badRequest().body("L'email ne peut pas être vide");
+    //     }
+    //     // Vérification de la présence du mot de passe
+    //     if (request.password() == null || request.password().isBlank()) {
+    //         return ResponseEntity.badRequest().body("Le mot de passe ne peut pas être vide");
+    //     }
+    //     // Vérification de la présence du nom d'utilisateur
+    //     if (request.username() == null || request.username().isBlank()) {
+    //         return ResponseEntity.badRequest().body("Le nom d'utilisateur ne peut pas être vide");
+    //     }
+    //     // Vérification de la présence de l'email
+    //     if (request.email() == null || request.email().isBlank()) {
+    //         return ResponseEntity.badRequest().body("L'email ne peut pas être vide");
+    //     }
         
         
-        // construisons l'utilisateur
-        Users user = Users.builder()
-            .username(request.username())
-            .password(passwordEncoder.encode(request.password()))
-            .build();
+    //     // construisons l'utilisateur
+    //     Users user = Users.builder()
+    //         .username(request.username())
+    //         .password(passwordEncoder.encode(request.password()))
+    //         .build();
 
-        // enregistrement
-        userRepository.save(user);
+    //     // enregistrement
+    //     userRepository.save(user);
 
-        String token = jwtTokenService.generateToken(
-            new UsernamePasswordAuthenticationToken(
-                request.username(),
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
-            )
-        );
-        tokenRequestDto loginResponse = new tokenRequestDto(token);
-        return ResponseEntity.ok(loginResponse);
-    }
+    //     String token = jwtTokenService.generateToken(
+    //         new UsernamePasswordAuthenticationToken(
+    //             request.username(),
+    //             Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+    //         )
+    //     );
+    //     tokenRequestDto loginResponse = new tokenRequestDto(token);
+    //     return ResponseEntity.ok(loginResponse);
+    // }
 
     public void logout() {
         // Invalidate the user's session or token
