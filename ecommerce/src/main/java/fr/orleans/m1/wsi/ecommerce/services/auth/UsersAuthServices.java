@@ -1,20 +1,14 @@
 package fr.orleans.m1.wsi.ecommerce.services.auth;
 
-import java.util.Collections;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import fr.orleans.m1.wsi.ecommerce.dto.RegistrationRequestDto;
 import fr.orleans.m1.wsi.ecommerce.dto.loginRequestDto;
-import fr.orleans.m1.wsi.ecommerce.dto.tokenRequestDto;
-import fr.orleans.m1.wsi.ecommerce.models.Users;
 import fr.orleans.m1.wsi.ecommerce.repositories.UsersRepository;
 import fr.orleans.m1.wsi.ecommerce.services.jwtTokens.JwtTokenService;
 
@@ -22,8 +16,6 @@ import fr.orleans.m1.wsi.ecommerce.services.jwtTokens.JwtTokenService;
 public class UsersAuthServices {
     
     private final JwtTokenService jwtTokenService;
-    private final UsersRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
 
     public UsersAuthServices(
@@ -31,9 +23,7 @@ public class UsersAuthServices {
         AuthenticationManager authenticationManager,
         UsersRepository userRepository,
         PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
         this.jwtTokenService = jwtTokenService;
-        this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
     }
 

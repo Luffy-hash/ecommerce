@@ -38,7 +38,7 @@ public class CustumUserDetailService implements UserDetails {
 
     public static CustumUserDetailService build(Users userDto){
         List<GrantedAuthority> authorities = userDto.getRoles().stream()
-        .map(role -> new SimpleGrantedAuthority(role.getERoles().name()))
+        .map(role -> new SimpleGrantedAuthority(role.getName().name()))
         .collect(Collectors.toList());
         return new CustumUserDetailService(userDto.getId(), 
                                         userDto.getEmail(), userDto.getUsername(), 

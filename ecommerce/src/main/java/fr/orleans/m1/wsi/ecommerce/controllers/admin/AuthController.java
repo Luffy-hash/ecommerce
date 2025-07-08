@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import fr.orleans.m1.wsi.ecommerce.dto.RegistrationRequestDto;
 import fr.orleans.m1.wsi.ecommerce.dto.loginRequestDto;
 import fr.orleans.m1.wsi.ecommerce.dto.tokenRequestDto;
-import fr.orleans.m1.wsi.ecommerce.models.ERoles;
+import fr.orleans.m1.wsi.ecommerce.models.ERole;
 import fr.orleans.m1.wsi.ecommerce.models.Role;
 import fr.orleans.m1.wsi.ecommerce.models.Users;
 import fr.orleans.m1.wsi.ecommerce.repositories.RoleRepository;
@@ -77,7 +77,7 @@ public class AuthController {
         ));
     }
 
-    @PostMapping("/singup")
+    @PostMapping("/singnup")
     public ResponseEntity<?> register(@Valid @RequestBody RegistrationRequestDto registration){
         if (usersRepository.existsByEmail(registration.email())){
             return ResponseEntity.badRequest().body("Cet email est déjà inscrit");
@@ -94,7 +94,7 @@ public class AuthController {
         Set<Role> roles = new HashSet<>();
 
         if (strRoles == null){
-            Role userRole = roleRepository.findByERole(ERoles.ROLE_USER.name())
+            Role userRole = roleRepository.findByName(ERole.ROLE_USER)
                                 .orElseThrow(() -> new RuntimeException("pas de role"));
             roles.add(userRole);    
         }
@@ -103,17 +103,17 @@ public class AuthController {
                 role -> 
                     {switch (role) {
                         case "admin":
-                            Role adminRole = roleRepository.findByERole(ERoles.ROLE_ADMIN.name())
+                            Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
                                 .orElseThrow(() -> new RuntimeException("zut admin"));
                             roles.add(adminRole);
                             break;
                         case "vendeur":
-                            Role vendeurRole = roleRepository.findByERole(ERoles.ROLE_VENDEUR.name())
+                            Role vendeurRole = roleRepository.findByName(ERole.ROLE_VENDEUR)
                                 .orElseThrow(() -> new RuntimeException("zut vendeur"));
                                 roles.add(vendeurRole);
                             break;
                         default:
-                            Role userRole = roleRepository.findByERole(ERoles.ROLE_USER.name())
+                            Role userRole = roleRepository.findByName(ERole.ROLE_USER)
                                 .orElseThrow(() -> new RuntimeException("zut utilisateur"));
                             roles.add(userRole);
                             break;
