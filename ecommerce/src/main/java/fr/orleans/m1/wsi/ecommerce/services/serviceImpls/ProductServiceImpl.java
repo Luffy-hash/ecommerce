@@ -70,7 +70,7 @@ public class ProductServiceImpl implements ProductService
     }
 
     private Page<Product> findProductByNameAndOrderByPrice(int page, int limit, String productName, Sort.Direction sortType) {
-        Sort sort = Sort.by(sortType, "price");
+        // Sort sort = Sort.by(sortType, "price");
         Pageable pageable = PageRequest.of(page, limit, sortType);
         return productRepository.findByNameContainingIgnoreCase(productName, pageable);
     }
