@@ -43,23 +43,23 @@ public class AuthFilterRequestService extends OncePerRequestFilter {
 
         try {
             final String token = authHeader.substring(7);
-            final String username = jwtTokenService.extractUsername(token);
+           // final String username = jwtTokenService.extractUsername(token);
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (username != null && authentication == null){
-                UserDetails userDetails = this.customUserDetailsService.loadUserByUsername(username);
-                if (this.jwtTokenService.isTokenValid(token, authentication)){
-                    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities());
-                    authenticationToken.setDetails(
-                        new WebAuthenticationDetailsSource()
-                        .buildDetails(request)
-                    );
-                    SecurityContextHolder.getContext()
-                    .setAuthentication(authenticationToken); 
-                }
-            }
+            // if (username != null && authentication == null){
+            //     UserDetails userDetails = this.customUserDetailsService.loadUserByUsername(username);
+            //     if (this.jwtTokenService.isTokenValid(token, authentication)){
+            //         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+            //             userDetails,
+            //             null,
+            //             userDetails.getAuthorities());
+            //         authenticationToken.setDetails(
+            //             new WebAuthenticationDetailsSource()
+            //             .buildDetails(request)
+            //         );
+            //         SecurityContextHolder.getContext()
+            //         .setAuthentication(authenticationToken); 
+            //     }
+            // }
             filterChain.doFilter(request, response);
         } catch (Exception e) {
             throw new IllegalAccessError("Mauvaise rêquette");

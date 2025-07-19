@@ -13,6 +13,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -56,39 +57,43 @@ public class AuthController {
         this.roleRepository = roleRepository;
     }
 
-    @PostMapping("/signin")
-    public ResponseEntity<?> login(@Valid @RequestBody loginRequestDto login){
-        Authentication authentifiedUser = authentication.authenticate(
-            new UsernamePasswordAuthenticationToken(login.email(), login.password())
-        );
+    // @PostMapping("/signin")
+    // public ResponseEntity<?> login(@Valid @RequestBody loginRequestDto login){
+    //     Authentication authentifiedUser = authentication.authenticate(
+    //         new UsernamePasswordAuthenticationToken(login.email(), login.password())
+    //     );
 
-        SecurityContextHolder.getContext().setAuthentication(authentifiedUser);
-        String token = jwtTokenService.generateToken(authentifiedUser);
-        if (!(authentifiedUser.getPrincipal() instanceof CustumUserDetailService)){ throw new IllegalAccessError("Erreur");}
-        CustumUserDetailService userDetailService = (CustumUserDetailService) authentifiedUser.getPrincipal();
-        List<String> roles = userDetailService
-                                .getAuthorities()
-                                .stream()
-                                .map(GrantedAuthority::getAuthority)
-                                .collect(Collectors.toList());
+    //     SecurityContextHolder.getContext().setAuthentication(authentifiedUser);
+    //     //String token = jwtTokenService.generateToken(authentifiedUser);
+    //     if (!(authentifiedUser.getPrincipal() instanceof CustumUserDetailService)){ throw new IllegalAccessError("Erreur");}
+    //     CustumUserDetailService userDetailService = (CustumUserDetailService) authentifiedUser.getPrincipal();
+    //     List<String> roles = userDetailService
+    //                             .getAuthorities()
+    //                             .stream()
+    //                             .map(GrantedAuthority::getAuthority)
+    //                             .collect(Collectors.toList());
 
-        return ResponseEntity.ok(new tokenRequestDto(
-            token, userDetailService.getUsername(), roles
-        ));
-    }
+    //     // return ResponseEntity.ok(new tokenRequestDto(
+    //     //     token, userDetailService.getUsername(), roles
+    //     // ));
+    // }
 
     @PostMapping("/singnup")
     public ResponseEntity<?> register(@Valid @RequestBody RegistrationRequestDto registration){
-        if (usersRepository.existsByEmail(registration.email())){
+
+        Users user = usersRepository.findByUsername(registration.username())
+        .orElseThrow(() -> new UsernameNotFoundException("Cet e-mail existe déjà"));
+
+        if (user.getUsername() != null){
             return ResponseEntity.badRequest().body("Cet email est déjà inscrit");
         }
 
-        Users user = Users
-                        .builder()
-                        .email(registration.email())
-                        .username(registration.username())
-                        .password(passwordEncoder.encode(registration.password()))
-                        .build();
+        Users
+            .builder()
+            .email(registration.email())
+            .username(registration.username())
+            .password(passwordEncoder.encode(registration.password()))
+            .build();
         
         Set<String> strRoles = registration.roles();
         Set<Role> roles = new HashSet<>();

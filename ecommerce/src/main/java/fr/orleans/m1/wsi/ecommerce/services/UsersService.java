@@ -24,9 +24,9 @@ public class UsersService {
     public Users createUser(Users user) {
         Long compteur = 0L;
 
-        if (userExistsByEmail(user.getEmail()) || userExistsByUsername(user.getUsername())) {
-            throw new UsernameNotFoundException("Cet utilisateur existe déjà."); // User already exists
-        }
+        // if (userExistsByEmail(user.getEmail()) || userExistsByUsername(user.getUsername())) {
+        //     throw new UsernameNotFoundException("Cet utilisateur existe déjà."); // User already exists
+        // }
 
         // Set default values for count and role
         user.setCount(compteur++);
@@ -51,22 +51,10 @@ public class UsersService {
         return usersRepository.findAll();
     }
 
-    public Users getUserByEmail(String email) {
-        return usersRepository.findByEmail(email).orElseThrow();
-    }
-
     public Users getUserByUsername(String username) {
         return usersRepository.findByUsername(username).orElseThrow(() -> {
             throw new UsernameNotFoundException("Utilisateur non trouvé."); // User not found
         });
-    }
-
-    public boolean userExistsByEmail(String email) {
-        return usersRepository.existsByEmail(email);
-    }
-
-    public boolean userExistsByUsername(String username) {
-        return usersRepository.existsByUsername(username);
     }
 
     public void deleteUserById(Long id) {

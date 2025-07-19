@@ -12,9 +12,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import fr.orleans.m1.wsi.ecommerce.services.custumUsers.CustumUserDetailService;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 
 @Component
@@ -33,69 +30,69 @@ public class JwtTokenService {
             this.expirationToken = expirationToken;
     }
 
-    // genère mon token
-    public String generateToken(Authentication authentication){
+    // // genère mon token
+    // public String generateToken(Authentication authentication){
     
-        if (!(authentication.getPrincipal() instanceof CustumUserDetailService)){ throw new IllegalAccessError("Accès non autoriser");}
-        CustumUserDetailService userDetailService = (CustumUserDetailService) authentication.getPrincipal();
+    //     if (!(authentication.getPrincipal() instanceof CustumUserDetailService)){ throw new IllegalAccessError("Accès non autoriser");}
+    //     CustumUserDetailService userDetailService = (CustumUserDetailService) authentication.getPrincipal();
         
-        return Jwts.builder()
-                   .subject(userDetailService.getUsername())
-                   .issuedAt(new Date(System.currentTimeMillis()))
-                   .expiration(new Date(System.currentTimeMillis() + expirationToken))
-                   .signWith(getSignInKey())
-                   .compact();
-    }
+    //     return Jwts.builder()
+    //                .subject(userDetailService.getUsername())
+    //                .issuedAt(new Date(System.currentTimeMillis()))
+    //                .expiration(new Date(System.currentTimeMillis() + expirationToken))
+    //                .signWith(getSignInKey())
+    //                .compact();
+    // }
 
-    // renvoie le nom d'utilisateur
-    public String extractUsername(String token){
-        return extractClaim(token, Claims::getSubject);
-    }
+    // // renvoie le nom d'utilisateur
+    // public String extractUsername(String token){
+    //     return extractClaim(token, Claims::getSubject);
+    // }
 
-    // qui extrait un claims
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolve){
-        final Claims claims = extractAllClaims(token);
-        return claimsResolve.apply(claims);
-    }
+    // // qui extrait un claims
+    // public <T> T extractClaim(String token, Function<Claims, T> claimsResolve){
+    //     final Claims claims = extractAllClaims(token);
+    //     return claimsResolve.apply(claims);
+    // }
 
-    // verifie si mon token est tjrs valide
-    public boolean isTokenValid(String token, Authentication authentication){
+    // // verifie si mon token est tjrs valide
+    // public boolean isTokenValid(String token, Authentication authentication){
 
-        // on recupère l'utilisateur connecté
-        if (!(authentication.getPrincipal() instanceof CustumUserDetailService)){ throw new IllegalAccessError("Accès non autoriser");}
-        CustumUserDetailService userDetailService = (CustumUserDetailService) authentication.getPrincipal();
+    //     // on recupère l'utilisateur connecté
+    //     if (!(authentication.getPrincipal() instanceof CustumUserDetailService)){ throw new IllegalAccessError("Accès non autoriser");}
+    //     CustumUserDetailService userDetailService = (CustumUserDetailService) authentication.getPrincipal();
         
-        // on renvoie la valeur true ou false
-        String username = extractUsername(token); // utilisateur du token
-        return (username.equals(userDetailService.getUsername())) && !isTokenExpired(token);
-    }
+    //     // on renvoie la valeur true ou false
+    //     String username = extractUsername(token); // utilisateur du token
+    //     return (username.equals(userDetailService.getUsername())) && !isTokenExpired(token);
+    // }
 
-    // # Helpers methodes
+    // // # Helpers methodes
 
-    // on verifie si la date est bonne ou pas (is date token expirée)
-    public boolean isTokenExpired(String token){
-        return extractExpiration(token).before(new Date());
-    }
+    // // on verifie si la date est bonne ou pas (is date token expirée)
+    // public boolean isTokenExpired(String token){
+    //     return extractExpiration(token).before(new Date());
+    // }
 
-    // qui me renvoie la date d'expiration
-    private Date extractExpiration(String token){
-        return extractClaim(token, Claims::getExpiration);
-    }
+    // // qui me renvoie la date d'expiration
+    // private Date extractExpiration(String token){
+    //     return extractClaim(token, Claims::getExpiration);
+    // }
 
-    // extrait tous les claims
-    private Claims extractAllClaims(String token){
-        SecretKey secret = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
-        return Jwts.parser()
-                   .verifyWith(secret)
-                   .build()
-                   .parseSignedClaims(token)
-                   .getPayload();
-    }
+    // // extrait tous les claims
+    // private Claims extractAllClaims(String token){
+    //     SecretKey secret = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+    //     return Jwts.parser()
+    //                .verifyWith(secret)
+    //                .build()
+    //                .parseSignedClaims(token)
+    //                .getPayload();
+    // }
 
-    private Key getSignInKey(){
-        byte[] keyBytes = this.secretKey.getBytes(StandardCharsets.UTF_8);
-        return Keys.hmacShaKeyFor(keyBytes);
-    }
+    // private Key getSignInKey(){
+    //     byte[] keyBytes = this.secretKey.getBytes(StandardCharsets.UTF_8);
+    //     return Keys.hmacShaKeyFor(keyBytes);
+    // }
 
     
 }

@@ -20,10 +20,10 @@ public class CustumUsersService implements UserDetailsService {
 
     @Override
     @Transactional
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         
-        Users user = usersRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("utilisatuer non trouvé: " + email));
+        Users user = usersRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("utilisatuer non trouvé: " + username));
         
         return CustumUserDetailService.build(user);
         

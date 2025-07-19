@@ -17,8 +17,6 @@ import lombok.Getter;
 @Getter
 public class CustumUserDetailService implements UserDetails {
 
-    private final static long serialVersionUID = 1L;
-
     private Long id;
     private String email;
     private String username;
