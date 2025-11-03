@@ -1,44 +1,44 @@
 package fr.orleans.m1.wsi.ecommerce.services;
 
 import fr.orleans.m1.wsi.ecommerce.models.Product;
-import fr.orleans.m1.wsi.ecommerce.services.exceptions.NotFoundException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
+import fr.orleans.m1.wsi.ecommerce.repositories.ProductRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 
 @Service
-public interface ProductService
+@RequiredArgsConstructor
+public class ProductService
 {
-    /**
-     * this method add a product in a table
-     * @param product
-     * @return
-     */
-    Product addedProduct(Product product);
+    private final ProductRepository productRepository;
 
-    /**
-     *  this method update a product in a table
-     * @param idProduct
-     * @param product
-     * @return
-     */
-    Product updatedProduct(Long idProduct, Product product) throws NotFoundException;
+    @Transactional(readOnly = true)
+    public List<Product> getAllProducts(){
+        return productRepository.findByActiveTrue();
+    }
 
-    /**
-     *
-     * @param id
-     */
-    void deletedProduct(Long id);
+    @Transactional(readOnly = true)
+    public Product getProduct(Long id){
+        return productRepository.findById(id).orElseThrow(() -> new RuntimeException("Produit non trouvé!"));
+    }
 
-    /**
-     *
-     * @param page
-     * @param limit
-     * @param productName
-     * @param sortType
-     * @return
-     */
-    Page<Product> getRequestFilter (int page, int limit, String productName, Sort.Direction sortType);
+    @Transactional
+    public Product createdProduct(Product product){
+        return productRepository.save(product);
+    }
 
+    @Transactional
+    public Product updateProduct(Long id, Product product){
+        Product existingProd = getProduct(id);
+        existingProd.setName(product.getName());
+        existingProd.setDescription(product.getDescription());
+        existingProd.setPrice(product.getPrice());
+        existingProd.setStock(product.getStock());
+        existingProd.setImage(product.getImage());
+        existingProd.setCategory(product.getCategory());
+
+        return productRepository.save(existingProd);
+    }
 }

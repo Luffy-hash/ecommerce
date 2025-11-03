@@ -1,37 +1,34 @@
 package fr.orleans.m1.wsi.ecommerce.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Null;
 import lombok.*;
 
 @Entity
-@Getter
-@Setter
+@Table(name = "products")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Product {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "Ce champs est requis.")
+    @Column(nullable = false)
     private String name;
 
-    @NotNull(message = "Ce champs est requis.")
     private String image;
+    private String category;
 
-    @NotNull(message = "Ce champs est requis.")
-    private Long price;
+    @Column(nullable = false)
+    private Double price;
 
-    @NotNull(message = "Ce champs est requis.")
-    private Long quantity;
-
-    @NotNull(message = "Ce champs n'est pas requis")
+    @Column(length = 1000)
     private String description;
 
+    @Column(nullable = false)
+    private long stock = 0;
 
+    private boolean active = true;
 }
