@@ -28,7 +28,7 @@ public class Product {
     private String description;
 
     @Column(nullable = false)
-    private long stock = 0;
+    private Integer stock = 0;
 
     private boolean active = true;
 }

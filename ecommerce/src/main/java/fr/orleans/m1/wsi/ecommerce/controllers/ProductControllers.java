@@ -3,8 +3,10 @@ package fr.orleans.m1.wsi.ecommerce.controllers;
 import fr.orleans.m1.wsi.ecommerce.models.Product;
 import fr.orleans.m1.wsi.ecommerce.services.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -15,9 +17,15 @@ import java.util.List;
 public class ProductControllers
 {
     private final ProductService productService;
+
     @GetMapping
     public ResponseEntity<List<Product>> getAllProducts() {
-        return ResponseEntity.ok(productService.getAllProducts());
+        try{
+            return ResponseEntity.ok(productService.getAllProducts());
+        }
+        catch(Exception e){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")
