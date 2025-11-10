@@ -1,9 +1,10 @@
 import 'dart:convert';
-
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
 
 class APIService {
-  final String baseUrl = "http://localhost:8080/api";
+  final String baseUrl = "http://10.21.171.251:8080/api";
 
   String? _token;
 
@@ -17,54 +18,125 @@ class APIService {
     return header;
   }
 
+  Future<Map<String, dynamic>> _handleResponse(http.Response response, String errorMsg) async {
+    print("status code : ${response.statusCode}");
+    print("response body : ${response.body}");
+
+    if (response.statusCode >= 200 && response.statusCode < 300){
+      try{
+
+        if (response.body.isEmpty){ throw Exception("body vide"); }
+        final decodeJson = jsonDecode(response.body);
+
+        if(decodeJson == null){ throw Exception("body return null"); }
+        return decodeJson as Map<String, dynamic>;
+      }
+      catch(e){
+        print("Erreur de decodage JSON : $e");
+        throw Exception("impossible de parser response : $e");
+      }
+    }
+    else{
+      String errorDetail = response.body;
+      try {
+        final errorJson = jsonDecode(response.body);
+        errorDetail = errorJson['message'] ?? errorJson['error'] ?? response.body;
+      }
+      catch(_){}
+      throw Exception("$errorMsg (${response.body}) : $errorDetail");
+    }
+  }
+
   Future<Map<String, dynamic>> login(String email, String password) async {
-    final response = await http.post(
-      Uri.parse("$baseUrl/auth/login"),
-      headers: {'content-type' : 'application/json'},
-      body: jsonEncode({'email' : email, 'password': password})
-    );
-    if (response.statusCode == 200){ return jsonDecode(response.body); }
-    else { throw Exception("Echec de connexion"); }
+    try{
+      final response = await http.post(
+          Uri.parse("$baseUrl/auth/login"),
+          headers: {'content-type' : 'application/json'},
+          body: jsonEncode({'email' : email, 'password': password})
+      );
+      return _handleResponse(response, "Echec de connexion!");
+    }
+    catch(e){
+      if (kDebugMode) {
+        print("Login : $e");
+      }
+      rethrow;
+    }
   }
 
   Future<Map<String, dynamic>> register(Map<String, dynamic> data) async {
-    final response = await http.post(
-      Uri.parse("$baseUrl/auth/register"),
-      headers: {'content-type' : 'application/json'},
-      body: jsonEncode(data)
-    );
-    if (response.statusCode == 200) { return jsonDecode(response.body); }
-    else { throw Exception("Echec d'inscription"); }
+    try {
+      final response = await http.post(
+          Uri.parse("$baseUrl/auth/register"),
+          headers: {'content-type' : 'application/json'},
+          body: jsonEncode(data)
+      );
+      if (kDebugMode) {
+        print("code de sortie : ${response.statusCode}");
+      }
+      return _handleResponse(response, "Echec d'inscription");
+    }
+    catch(e){
+      if (kDebugMode) {
+        print("Register : $e");
+      }
+      rethrow;
+    }
   }
   
   Future<List<dynamic>> getProducts() async {
-    final response = await http.get(
-      Uri.parse("$baseUrl/products"),
-      headers: _getHeaders()
-    );
-    if (response.statusCode == 200) { return jsonDecode(response.body); }
-    else { throw Exception("Pas de produit!"); }
+    try{
+      final response = await http.get(
+          Uri.parse("$baseUrl/products"),
+          headers: _getHeaders()
+      );
+      if (response.statusCode == 200) {
+        if (response.body.isEmpty) { return [];}
+        return jsonDecode(response.body) as List<dynamic>;
+      }
+      else { throw Exception("Pas de produit!"); }
+    }
+    catch(e){
+      if (kDebugMode) {
+        print("Products : $e");
+      }
+      rethrow;
+    }
   }
 
   Future<Map<String, dynamic>> createdOrder(Map<String, dynamic> orderData) async {
-    final response = await http.post(
-      Uri.parse("$baseUrl/orders"),
-      headers: _getHeaders(),
-      body: jsonEncode(orderData)
-    );
+    try{
+      final response = await http.post(
+          Uri.parse("$baseUrl/orders"),
+          headers: _getHeaders(),
+          body: jsonEncode(orderData)
+      );
 
-    if (response.statusCode == 200){ return jsonDecode(response.body); }
-    else { throw Exception("Erreur de creation!"); }
+      return _handleResponse(response, "creation de commande echouer");
+    }
+    catch(e){
+      if (kDebugMode) { print("created order : $e"); }
+      rethrow;
+    }
   }
   
   Future<List<dynamic>> getUserOrder() async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/orders'),
-      headers: _getHeaders()
-    );
+    try {
+      final response = await http.get(
+          Uri.parse('$baseUrl/orders'),
+          headers: _getHeaders()
+      );
 
-    if (response.statusCode == 200){ return jsonDecode(response.body); }
-    else { throw Exception("Pas de commande !"); }
+      if (response.statusCode == 200){
+        if (response.body.isEmpty) { return []; }
+        return jsonDecode(response.body) as List<dynamic>;
+      }
+      else { throw Exception("Pas de commande ! ${response.statusCode}"); }
+    }
+    catch(e){
+      if (kDebugMode) { print("order by user : $e"); }
+      rethrow;
+    }
   }
 
 }

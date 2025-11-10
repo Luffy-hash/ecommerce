@@ -1,5 +1,6 @@
 package fr.orleans.m1.wsi.ecommerce.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -8,6 +9,8 @@ import lombok.Data;
 public class AuthResponse
 {
     private String token;
+
+    @JsonProperty("user")
     private UserDTO userDTO;
 
     @Data
