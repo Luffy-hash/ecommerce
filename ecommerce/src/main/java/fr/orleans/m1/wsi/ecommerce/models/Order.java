@@ -32,6 +32,6 @@ public class Order
 
     private String status = "en attente";
 
-    private String shippingAdress;
+    private String shippingAddress;
     private LocalDateTime cratedAt = LocalDateTime.now();
 }

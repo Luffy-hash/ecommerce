@@ -7,11 +7,11 @@ import java.util.List;
 @Data
 public class OrderRequest
 {
-    private List<OrderItemsDTO> items;
-    private String shippingAdress;
+    private List<OrderItemDTO> items;
+    private String shippingAddress;
 
     @Data
-    public static class OrderItemsDTO{
+    public static class OrderItemDTO{
         private Long productId;
         private Integer quantity;
     }

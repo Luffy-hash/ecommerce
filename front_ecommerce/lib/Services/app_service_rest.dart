@@ -4,8 +4,14 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 
 class APIService {
-  final String baseUrl = "http://10.21.171.251:8080/api";
+  //final String baseUrl = "http://10.21.171.251:8080/api";
   //final String baseUrl = "http://10.0.2.2:8080/api";
+
+  static String get baseUrl {
+    if (kIsWeb) { return "http://localhost:8080/api"; }
+    else if (Platform.isAndroid) { return "http://10.21.171.251:8080/api"; }
+    else { return "http://localhost:8080/api"; }
+  }
 
   String? _token;
 
@@ -15,7 +21,7 @@ class APIService {
 
   Map<String, String> _getHeaders() {
     final header = { 'content-type': 'application/json'};
-    if (_token != null) { header['Authorization'] = 'Bearer $_token'; }
+    if (_token != null && _token!.isNotEmpty) { header['Authorization'] = 'Bearer $_token'; }
     return header;
   }
 
@@ -107,12 +113,22 @@ class APIService {
 
   Future<Map<String, dynamic>> createdOrder(Map<String, dynamic> orderData) async {
     try{
+
+      if (kDebugMode){
+        print("Created Order ...");
+        print("Token : $_token}");
+        print("Headers : ${_getHeaders()}");
+      }
+
       final response = await http.post(
           Uri.parse("$baseUrl/orders"),
           headers: _getHeaders(),
           body: jsonEncode(orderData)
       );
-
+      if (kDebugMode){
+        print("status code : ${response.statusCode}");
+        print("body : ${response.body}");
+      }
       return _handleResponse(response, "creation de commande echouer");
     }
     catch(e){

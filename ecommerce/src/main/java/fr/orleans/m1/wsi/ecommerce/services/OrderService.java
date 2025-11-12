@@ -24,17 +24,28 @@ public class OrderService
 
     @Transactional
     public Order createdOrder(OrderRequest request, String userEmail){
+
+        System.out.println("📦 Creating order for user: " + userEmail);
+        System.out.println("📋 Request data: " + request);
+        System.out.println("🏠 Shipping address: " + request.getShippingAddress());
+        System.out.println("🛍️ Items: " + request.getItems());
+        System.out.println("📊 Number of items: " + (request.getItems() != null ? request.getItems().size() : "NULL"));
+
+
+        if (request.getItems() == null || request.getItems().isEmpty()){
+            throw new RuntimeException("Au moins un produit");
+        }
         User user = usersRepository.findUserByEmail(userEmail).orElseThrow(
-                () -> new RuntimeException("User not Found")
+                () -> new RuntimeException("Utilisateur non trouvé")
         );
 
         Order order = new Order();
         order.setUser(user);
-        order.setShippingAdress(request.getShippingAdress());
+        order.setShippingAddress(request.getShippingAddress());
 
         double total = 0.0;
 
-        for(OrderRequest.OrderItemsDTO orderItemsDTO : request.getItems()){
+        for(OrderRequest.OrderItemDTO orderItemsDTO : request.getItems()){
             Product product = productRepository.findById(orderItemsDTO.getProductId()).orElseThrow(
                     () -> new RuntimeException("Not found product ")
             );
